@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { DataProvider } from "@/contexts/DataContext";
 
 export const metadata: Metadata = {
   title: "Intellex Management System",
@@ -16,7 +17,9 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen bg-ix-bg text-ix-text">
         <AuthProvider>
-          {children}
+          <DataProvider>
+            {children}
+          </DataProvider>
         </AuthProvider>
       </body>
     </html>

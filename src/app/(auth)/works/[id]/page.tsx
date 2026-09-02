@@ -1,22 +1,26 @@
 'use client';
 
+import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { demoWorks, demoAlerts } from '@/lib/demo-data';
+import { useData } from '@/contexts/DataContext';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { WORK_STAGES, getStageIndex, getStageLabel } from '@/constants/stages';
 import {
   ArrowLeft, Phone, Mail, User, Briefcase, IndianRupee,
-  Calendar, Clock, CheckCircle2, AlertTriangle, ChevronRight,
-  FileText, MessageSquare
+  Calendar, Clock, CheckCircle2, AlertTriangle, ChevronRight, Plus
 } from 'lucide-react';
+import AddPaymentModal from '@/components/AddPaymentModal';
 
 export default function WorkDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { isOwner } = useAuth();
+  const { getWorkById, getPaymentsForWork, alerts } = useData();
   const router = useRouter();
 
-  const work = demoWorks.find((w) => w.id === id);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+
+  const work = getWorkById(id);
   if (!work) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -25,11 +29,12 @@ export default function WorkDetailPage() {
     );
   }
 
-  const workAlerts = demoAlerts.filter((a) => a.workId === id && a.status === 'Active');
+  const workAlerts = alerts.filter((a) => a.workId === id && a.status === 'Active');
+  const workPayments = getPaymentsForWork(id);
   const stageIdx = getStageIndex(work.currentStage);
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-4 animate-fade-in pb-6">
       {/* Back */}
       <button
         onClick={() => router.push('/works')}
@@ -177,10 +182,19 @@ export default function WorkDetailPage() {
       {/* Finance — OWNER ONLY */}
       {isOwner && (
         <div className="rounded-2xl border border-ix-border bg-ix-surface p-4">
-          <h2 className="font-semibold mb-3 flex items-center gap-2">
-            <IndianRupee className="w-4 h-4 text-ix-text-muted" />
-            Finance
-          </h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-semibold flex items-center gap-2">
+              <IndianRupee className="w-4 h-4 text-ix-text-muted" />
+              Finance
+            </h2>
+            <button
+              onClick={() => setPaymentModalOpen(true)}
+              className="flex items-center gap-1 px-3 py-1 rounded-xl bg-ix-green text-ix-bg text-xs font-bold hover:bg-ix-green-hover transition-colors shadow-sm"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Record Payment
+            </button>
+          </div>
 
           {/* Client Side */}
           <div className="p-3 rounded-xl bg-ix-bg mb-3">
@@ -214,6 +228,21 @@ export default function WorkDetailPage() {
               </div>
             </div>
           </div>
+
+          {/* Recorded Payments list for this work */}
+          {workPayments.length > 0 && (
+            <div className="p-3 rounded-xl bg-ix-bg mb-3">
+              <p className="text-[10px] text-ix-text-muted uppercase tracking-wider mb-2">Payment History ({workPayments.length})</p>
+              <div className="space-y-1.5">
+                {workPayments.map((p) => (
+                  <div key={p.id} className="flex justify-between items-center text-xs">
+                    <span className="text-ix-text-secondary">{p.type} ({formatDate(p.date)})</span>
+                    <span className="font-semibold text-ix-green">+{formatCurrency(p.amount)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Expense Side */}
           <div className="p-3 rounded-xl bg-ix-bg mb-3">
@@ -311,6 +340,13 @@ export default function WorkDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Add Payment Modal */}
+      <AddPaymentModal
+        isOpen={paymentModalOpen}
+        onClose={() => setPaymentModalOpen(false)}
+        defaultWorkId={id}
+      />
     </div>
   );
 }

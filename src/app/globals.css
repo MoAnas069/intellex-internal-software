@@ -185,3 +185,19 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* Mobile Touch & Viewport Utilities */
+html {
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+button {
+  touch-action: manipulation;
+}
+
+.backdrop-blur-xs {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+

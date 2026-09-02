@@ -3,10 +3,10 @@
 import { useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { demoWorks } from '@/lib/demo-data';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { useData } from '@/contexts/DataContext';
+import { formatCurrency } from '@/lib/utils';
 import { getStageLabel } from '@/constants/stages';
-import { Search, Plus, ChevronRight, Clock, CheckCircle2 } from 'lucide-react';
+import { Search, Plus, ChevronRight } from 'lucide-react';
 
 const FILTERS = [
   { label: 'All', value: 'all' },
@@ -22,18 +22,19 @@ export default function WorksPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isOwner } = useAuth();
+  const { works } = useData();
 
   const initialFilter = searchParams.get('filter') || 'all';
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState(initialFilter);
 
   const filtered = useMemo(() => {
-    let works = [...demoWorks];
+    let result = [...works];
 
     // Search
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      works = works.filter(
+      result = result.filter(
         (w) =>
           w.workId.toLowerCase().includes(q) ||
           w.projectName.toLowerCase().includes(q) ||
@@ -46,30 +47,30 @@ export default function WorksPage() {
     // Filter
     switch (filter) {
       case 'ongoing':
-        works = works.filter((w) => w.currentStage !== 'COMPLETED');
+        result = result.filter((w) => w.currentStage !== 'COMPLETED');
         break;
       case 'completed':
-        works = works.filter((w) => w.currentStage === 'COMPLETED');
+        result = result.filter((w) => w.currentStage === 'COMPLETED');
         break;
       case 'design':
-        works = works.filter((w) => ['DESIGN', 'DESIGN_QC'].includes(w.currentStage));
+        result = result.filter((w) => ['DESIGN', 'DESIGN_QC'].includes(w.currentStage));
         break;
       case 'development':
-        works = works.filter((w) => ['DEVELOPMENT', 'DEVELOPMENT_QC'].includes(w.currentStage));
+        result = result.filter((w) => ['DEVELOPMENT', 'DEVELOPMENT_QC'].includes(w.currentStage));
         break;
       case 'pending-payment':
-        works = works.filter((w) => w.remainingPayment > 0);
+        result = result.filter((w) => w.remainingPayment > 0);
         break;
       case 'new':
-        works = works.filter((w) => w.currentStage === 'NEW');
+        result = result.filter((w) => w.currentStage === 'NEW');
         break;
     }
 
     // Sort by most recent update
-    works.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    result.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 
-    return works;
-  }, [searchQuery, filter]);
+    return result;
+  }, [searchQuery, filter, works]);
 
   const stageColor = (stage: string) => {
     if (stage === 'COMPLETED') return 'text-ix-green bg-ix-green-dim border-ix-green/20';
@@ -81,19 +82,20 @@ export default function WorksPage() {
   };
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-4 animate-fade-in pb-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">Works</h1>
-          <p className="text-sm text-ix-text-muted">{filtered.length} projects</p>
+          <h1 className="text-xl font-bold">Works & Projects</h1>
+          <p className="text-xs sm:text-sm text-ix-text-muted">{filtered.length} projects total</p>
         </div>
         <button
           onClick={() => router.push('/works/new')}
-          className="flex items-center gap-2 h-10 px-4 rounded-xl bg-ix-green text-ix-bg font-semibold text-sm hover:bg-ix-green-hover transition-colors active:scale-[0.98]"
+          className="flex items-center gap-2 h-10 px-3.5 sm:px-4 rounded-xl bg-ix-green text-ix-bg font-semibold text-sm hover:bg-ix-green-hover transition-colors active:scale-[0.98]"
         >
           <Plus className="w-4 h-4" />
           <span className="hidden sm:inline">New Work</span>
+          <span className="sm:hidden text-xs">New</span>
         </button>
       </div>
 
@@ -104,7 +106,7 @@ export default function WorksPage() {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search works, clients..."
+          placeholder="Search works, clients, developers..."
           className="w-full h-11 pl-10 pr-4 rounded-xl bg-ix-surface border border-ix-border text-sm placeholder:text-ix-text-muted focus:border-ix-green focus:outline-none transition-colors"
         />
       </div>
@@ -115,9 +117,9 @@ export default function WorksPage() {
           <button
             key={f.value}
             onClick={() => setFilter(f.value)}
-            className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
               filter === f.value
-                ? 'bg-ix-green text-ix-bg'
+                ? 'bg-ix-green text-ix-bg font-semibold shadow-sm'
                 : 'bg-ix-surface border border-ix-border text-ix-text-secondary hover:text-ix-text'
             }`}
           >
@@ -127,23 +129,23 @@ export default function WorksPage() {
       </div>
 
       {/* Work Cards */}
-      <div className="space-y-2 stagger-children">
+      <div className="space-y-2.5 stagger-children">
         {filtered.map((work) => (
           <button
             key={work.id}
             onClick={() => router.push(`/works/${work.id}`)}
-            className="w-full rounded-2xl border border-ix-border bg-ix-surface p-4 text-left hover:bg-ix-surface-hover hover:border-ix-border-light transition-all group active:scale-[0.99]"
+            className="w-full rounded-2xl border border-ix-border bg-ix-surface p-3.5 sm:p-4 text-left hover:bg-ix-surface-hover hover:border-ix-border-light transition-all group active:scale-[0.99]"
           >
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-xs font-mono text-ix-text-muted">{work.workId}</span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full border ${stageColor(work.currentStage)}`}>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${stageColor(work.currentStage)}`}>
                     {getStageLabel(work.currentStage)}
                   </span>
                 </div>
-                <h3 className="text-sm font-semibold mt-1.5">{work.companyName}</h3>
-                <p className="text-xs text-ix-text-muted mt-0.5">{work.projectName}</p>
+                <h3 className="text-sm sm:text-base font-semibold mt-1 truncate">{work.companyName}</h3>
+                <p className="text-xs text-ix-text-muted mt-0.5 truncate">{work.projectName}</p>
 
                 <div className="flex items-center gap-3 mt-2 flex-wrap">
                   <span className="text-xs text-ix-text-secondary">
@@ -155,14 +157,14 @@ export default function WorksPage() {
                     </span>
                   )}
                   {isOwner && work.remainingPayment > 0 && (
-                    <span className="text-xs text-amber-400">
+                    <span className="text-xs font-semibold text-amber-400">
                       Pending: {formatCurrency(work.remainingPayment)}
                     </span>
                   )}
                 </div>
               </div>
 
-              <div className="ml-3 flex flex-col items-end gap-2">
+              <div className="ml-2 flex flex-col items-end gap-2 flex-shrink-0">
                 {/* Progress */}
                 <div className="relative w-10 h-10">
                   <svg className="w-10 h-10 -rotate-90" viewBox="0 0 36 36">
@@ -179,7 +181,7 @@ export default function WorksPage() {
                     {work.progress}
                   </span>
                 </div>
-                <ChevronRight className="w-4 h-4 text-ix-text-muted opacity-0 group-hover:opacity-100" />
+                <ChevronRight className="w-4 h-4 text-ix-text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
             </div>
           </button>
@@ -187,7 +189,7 @@ export default function WorksPage() {
 
         {filtered.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-ix-text-muted">No works found</p>
+            <p className="text-ix-text-muted">No works found matching filter</p>
           </div>
         )}
       </div>
