@@ -1,0 +1,36 @@
+// Skills available in the Intellex system
+export const AVAILABLE_SKILLS = [
+  'HTML',
+  'CSS',
+  'JavaScript',
+  'TypeScript',
+  'React',
+  'Next.js',
+  'Tailwind CSS',
+  'Firebase',
+  'Shopify',
+  'WordPress',
+  'Git',
+  'GitHub',
+  'API',
+  'Backend',
+  'Node.js',
+  'Express',
+  'MongoDB',
+  'SQL',
+  'Responsive Design',
+  'SEO',
+  'Animation',
+  'Figma',
+  'UI/UX Design',
+  'Python',
+  'PHP',
+] as const;
+
+export const SKILL_LEVELS = [
+  'Beginner',
+  'Developing',
+  'Intermediate',
+  'Advanced',
+  'Verified',
+] as const;
