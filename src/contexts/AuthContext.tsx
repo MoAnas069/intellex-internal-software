@@ -2,6 +2,13 @@
 
 import React, { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import type { UserRole } from '@/types';
+import { auth } from '@/lib/firebase';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+} from 'firebase/auth';
 
 interface AuthUser {
   uid: string;
@@ -22,8 +29,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-// Passwords are checked server-side via API route in production.
-// For demo mode, we use hashed comparison.
 const DEMO_CREDENTIALS: Record<UserRole, { password: string; user: AuthUser }> = {
   owner: {
     password: 'karnan2255',
@@ -46,7 +51,6 @@ const DEMO_CREDENTIALS: Record<UserRole, { password: string; user: AuthUser }> =
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Always start with null to match server-rendered HTML
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -64,25 +68,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setMounted(true);
   }, []);
 
+  // Listen to Firebase Auth state changes
+  useEffect(() => {
+    if (!auth) return;
+
+    const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
+      if (fbUser && fbUser.email) {
+        // Identify role from email or existing state
+        const role: UserRole = fbUser.email.includes('owner') ? 'owner' : 'student_manager';
+        const mappedUser: AuthUser = {
+          uid: fbUser.uid,
+          role,
+          name: role === 'owner' ? 'Owner' : 'Amal',
+          email: fbUser.email,
+        };
+        setUser(mappedUser);
+        localStorage.setItem('intellex_user', JSON.stringify(mappedUser));
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const login = useCallback(async (role: UserRole, password: string): Promise<boolean> => {
     setLoading(true);
     try {
-      // Simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
       const creds = DEMO_CREDENTIALS[role];
-      if (creds && creds.password === password) {
-        setUser(creds.user);
-        localStorage.setItem('intellex_user', JSON.stringify(creds.user));
-        return true;
+      if (!creds || creds.password !== password) {
+        return false;
       }
-      return false;
+
+      // Try Firebase Auth if configured
+      if (auth) {
+        try {
+          await signInWithEmailAndPassword(auth, creds.user.email, password);
+        } catch (authErr: any) {
+          // If user doesn't exist yet in new project, create the user
+          if (
+            authErr.code === 'auth/user-not-found' ||
+            authErr.code === 'auth/invalid-credential' ||
+            authErr.code === 'auth/invalid-login-credentials'
+          ) {
+            try {
+              await createUserWithEmailAndPassword(auth, creds.user.email, password);
+            } catch (createErr) {
+              console.warn('[AuthContext] Firebase create user notice:', createErr);
+            }
+          }
+        }
+      }
+
+      // Set user state
+      setUser(creds.user);
+      localStorage.setItem('intellex_user', JSON.stringify(creds.user));
+      return true;
     } finally {
       setLoading(false);
     }
   }, []);
 
   const logout = useCallback(() => {
+    if (auth) {
+      signOut(auth).catch((err) => console.warn('[AuthContext] Firebase signOut error:', err));
+    }
     setUser(null);
     localStorage.removeItem('intellex_user');
   }, []);
@@ -107,4 +155,3 @@ export function useAuth(): AuthContextType {
   }
   return context;
 }
-

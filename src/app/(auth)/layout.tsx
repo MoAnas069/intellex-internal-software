@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
+import { useData } from '@/contexts/DataContext';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
@@ -46,6 +47,7 @@ const MANAGER_SIDEBAR_EXTRA: NavItem[] = [
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const { user, logout, mounted } = useAuth();
+  const { isLiveBackend } = useData();
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -109,6 +111,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
           {/* Right Action Icons */}
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            {isLiveBackend && (
+              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-ix-green/10 border border-ix-green/30 text-[11px] font-medium text-ix-green mr-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-ix-green animate-pulse" />
+                <span>Firebase Connected</span>
+              </div>
+            )}
             <button
               onClick={() => router.push('/alerts')}
               className="relative p-2 text-ix-text-secondary hover:text-ix-text transition-colors rounded-lg hover:bg-ix-surface"
