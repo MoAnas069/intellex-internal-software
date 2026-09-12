@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useData } from '@/contexts/DataContext';
 import { ArrowLeft, ArrowRight, Check, User } from 'lucide-react';
 import { AVAILABLE_SKILLS } from '@/constants/skills';
 
@@ -9,6 +10,7 @@ const STEPS = ['Basic Info', 'Contact', 'Education', 'Skills', 'Confirm'];
 
 export default function NewStudentPage() {
   const router = useRouter();
+  const { addStudent } = useData();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
     fullName: '', phone: '', email: '', college: '', course: '',
@@ -39,9 +41,19 @@ export default function NewStudentPage() {
   };
 
   const handleSubmit = () => {
-    // In production, this would call an API
-    alert('Student created successfully! (Demo mode)');
-    router.push('/students');
+    const created = addStudent({
+      fullName: form.fullName.trim(),
+      phone: form.phone.trim(),
+      email: form.email.trim(),
+      college: form.college.trim(),
+      course: form.course.trim(),
+      yearSemester: form.yearSemester,
+      joiningDate: form.joiningDate,
+      primaryInterest: form.primaryInterest || 'Web Development',
+      notes: form.notes.trim(),
+    });
+
+    router.push(`/students/${created.id}`);
   };
 
   return (

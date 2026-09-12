@@ -1,17 +1,18 @@
 'use client';
 
-import { demoStudents, demoPointTransactions } from '@/lib/demo-data';
+import { useData } from '@/contexts/DataContext';
 import { formatDate, getPointsColor, getInitials } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { Award } from 'lucide-react';
 
 export default function PointsPage() {
   const router = useRouter();
+  const { students, pointTransactions } = useData();
 
   // Flatten all point transactions
-  const allTransactions = Object.entries(demoPointTransactions)
+  const allTransactions = Object.entries(pointTransactions)
     .flatMap(([studentId, transactions]) => {
-      const student = demoStudents.find(s => s.id === studentId);
+      const student = students.find(s => s.id === studentId);
       return transactions.map(t => ({ ...t, studentName: student?.fullName || 'Unknown', studentId }));
     })
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -27,19 +28,19 @@ export default function PointsPage() {
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-xl border border-ix-border bg-ix-surface p-3 text-center">
           <p className="text-lg font-bold text-ix-green">
-            {demoStudents.filter(s => s.currentPoints >= 30).length}
+            {students.filter(s => s.currentPoints >= 30).length}
           </p>
           <p className="text-[10px] text-ix-text-muted">High Points</p>
         </div>
         <div className="rounded-xl border border-ix-border bg-ix-surface p-3 text-center">
           <p className="text-lg font-bold text-amber-400">
-            {demoStudents.filter(s => s.currentPoints < 0 && s.currentPoints > -15).length}
+            {students.filter(s => s.currentPoints < 0 && s.currentPoints > -15).length}
           </p>
           <p className="text-[10px] text-ix-text-muted">Watch</p>
         </div>
         <div className="rounded-xl border border-ix-border bg-ix-surface p-3 text-center">
           <p className="text-lg font-bold text-ix-danger">
-            {demoStudents.filter(s => s.currentPoints <= -15).length}
+            {students.filter(s => s.currentPoints <= -15).length}
           </p>
           <p className="text-[10px] text-ix-text-muted">Correction</p>
         </div>

@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { demoStudents, demoWorks, demoStudentSkills, demoPerformanceRecords, demoPointTransactions, demoEvidenceRecords } from '@/lib/demo-data';
+import { useData } from '@/contexts/DataContext';
+import { demoStudentSkills, demoPerformanceRecords } from '@/lib/demo-data';
 import { formatDate, getPointsColor, getInitials, getAttentionLevel } from '@/lib/utils';
 import type { PointTransaction, EvidenceRecord, EvidenceType } from '@/types';
 import {
@@ -46,15 +47,15 @@ const EVIDENCE_TYPES: EvidenceType[] = [
 export default function StudentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { isOwner, user } = useAuth();
+  const { students, works, pointTransactions, evidenceRecords, addPointTransaction, addEvidence } = useData();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('Overview');
 
-  // Stateful data
-  const [pointsList, setPointsList] = useState<PointTransaction[]>(demoPointTransactions[id] || []);
-  const [evidenceList, setEvidenceList] = useState<EvidenceRecord[]>(demoEvidenceRecords[id] || []);
-  const [localPoints, setLocalPoints] = useState(
-    demoStudents.find((s) => s.id === id)?.currentPoints || 0
-  );
+  // Stateful data from DataContext
+  const student = students.find((s) => s.id === id);
+  const pointsList = pointTransactions[id] || [];
+  const evidenceList = evidenceRecords[id] || [];
+  const localPoints = student?.currentPoints || 0;
 
   // Modal states
   const [showAddPoints, setShowAddPoints] = useState(false);
@@ -74,7 +75,6 @@ export default function StudentDetailPage() {
   const [evidenceLink, setEvidenceLink] = useState('');
   const [evidenceProjectId, setEvidenceProjectId] = useState('');
 
-  const student = demoStudents.find((s) => s.id === id);
   if (!student) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -83,7 +83,7 @@ export default function StudentDetailPage() {
     );
   }
 
-  const studentWorks = demoWorks.filter((w) => w.developerId === id || w.designerId === id);
+  const studentWorks = works.filter((w) => w.developerId === id || w.designerId === id);
   const ongoingWorks = studentWorks.filter((w) => w.currentStage !== 'COMPLETED');
   const completedWorks = studentWorks.filter((w) => w.currentStage === 'COMPLETED');
   const skills = demoStudentSkills[id] || [];
@@ -93,9 +93,9 @@ export default function StudentDetailPage() {
   const skillLevelColor = (level: string) => {
     switch (level) {
       case 'Verified': return 'text-ix-green bg-ix-green-dim border-ix-green/20';
-      case 'Advanced': return 'text-blue-400 bg-blue-400/10 border-blue-400/20';
-      case 'Intermediate': return 'text-purple-400 bg-purple-400/10 border-purple-400/20';
-      case 'Developing': return 'text-amber-400 bg-amber-400/10 border-amber-400/20';
+      case 'Advanced': return 'text-blue-400 bg-blue-500/10 border-blue-500/20';
+      case 'Intermediate': return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
+      case 'Developing': return 'text-orange-400 bg-orange-500/10 border-orange-500/20';
       default: return 'text-ix-text-muted bg-ix-surface border-ix-border';
     }
   };
@@ -105,20 +105,13 @@ export default function StudentDetailPage() {
     const reason = pointReason === '__custom__' ? pointCustomReason : pointReason;
     if (!reason.trim()) return;
 
-    const actualAmount = pointType === 'positive' ? pointAmount : -pointAmount;
-    const newTransaction: PointTransaction = {
-      id: `pt-${Date.now()}`,
-      date: new Date().toISOString(),
-      amount: actualAmount,
+    addPointTransaction(id, {
+      amount: pointAmount,
       type: pointType,
-      reason: reason,
-      addedBy: user?.name || 'Unknown',
-      relatedWorkId: pointWorkId,
-      note: pointNote,
-    };
-
-    setPointsList((prev) => [newTransaction, ...prev]);
-    setLocalPoints((prev) => prev + actualAmount);
+      reason: reason.trim(),
+      relatedWorkId: pointWorkId || undefined,
+      note: pointNote.trim() || undefined,
+    });
 
     // Reset form
     setPointType('positive');
@@ -134,19 +127,12 @@ export default function StudentDetailPage() {
   const handleAddEvidence = () => {
     if (!evidenceDescription.trim()) return;
 
-    const newEvidence: EvidenceRecord = {
-      id: `ev-${Date.now()}`,
+    addEvidence(id, {
       type: evidenceType,
-      date: new Date().toISOString(),
-      projectId: evidenceProjectId,
-      description: evidenceDescription,
-      evidenceLink: evidenceLink,
-      verifiedBy: '',
-      verificationStatus: 'Pending',
-      createdAt: new Date().toISOString(),
-    };
-
-    setEvidenceList((prev) => [newEvidence, ...prev]);
+      description: evidenceDescription.trim(),
+      evidenceLink: evidenceLink.trim() || undefined,
+      projectId: evidenceProjectId || undefined,
+    });
 
     // Reset form
     setEvidenceType('GitHub Contribution');

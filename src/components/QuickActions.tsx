@@ -1,86 +1,166 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Plus, X, Briefcase, User, Bell, IndianRupee, Award, FileText } from 'lucide-react';
 import AddPaymentModal from './AddPaymentModal';
+import AddWorkModal from './AddWorkModal';
+import AddStudentModal from './AddStudentModal';
+import AddAlertModal from './AddAlertModal';
+import AddPointsModal from './AddPointsModal';
+import AddEvidenceModal from './AddEvidenceModal';
 
 export default function QuickActions() {
   const [open, setOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
-  const router = useRouter();
+  const [workModalOpen, setWorkModalOpen] = useState(false);
+  const [studentModalOpen, setStudentModalOpen] = useState(false);
+  const [alertModalOpen, setAlertModalOpen] = useState(false);
+  const [pointsModalOpen, setPointsModalOpen] = useState(false);
+  const [evidenceModalOpen, setEvidenceModalOpen] = useState(false);
+
   const { isOwner } = useAuth();
 
   const actions = [
-    { label: 'New Work', icon: Briefcase, href: '/works/new', color: 'text-blue-400' },
-    { label: 'New Student', icon: User, href: '/students/new', color: 'text-green-400' },
-    { label: 'New Alert', icon: Bell, href: '/alerts', color: 'text-amber-400' },
+    {
+      label: 'New Work',
+      icon: Briefcase,
+      action: () => setWorkModalOpen(true),
+      color: 'text-blue-400',
+      note: 'Create a new project',
+    },
+    {
+      label: 'New Student',
+      icon: User,
+      action: () => setStudentModalOpen(true),
+      color: 'text-green-400',
+      note: 'Register student',
+    },
+    {
+      label: 'New Alert',
+      icon: Bell,
+      action: () => setAlertModalOpen(true),
+      color: 'text-amber-400',
+      note: 'Broadcast an alert',
+    },
     ...(isOwner
-      ? [{ label: 'Add Payment', icon: IndianRupee, action: () => setPaymentModalOpen(true), color: 'text-purple-400' }]
+      ? [
+          {
+            label: 'Add Payment',
+            icon: IndianRupee,
+            action: () => setPaymentModalOpen(true),
+            color: 'text-purple-400',
+            note: 'Record project payment',
+          },
+        ]
       : []),
-    { label: 'Add Points', icon: Award, href: '/students', color: 'text-pink-400', note: 'Select a student first' },
-    { label: 'Add Evidence', icon: FileText, href: '/students', color: 'text-cyan-400', note: 'Select a student first' },
+    {
+      label: 'Add Points',
+      icon: Award,
+      action: () => setPointsModalOpen(true),
+      color: 'text-pink-400',
+      note: 'Award or deduct points',
+    },
+    {
+      label: 'Add Evidence',
+      icon: FileText,
+      action: () => setEvidenceModalOpen(true),
+      color: 'text-cyan-400',
+      note: 'Log student work proof',
+    },
   ];
 
   return (
     <>
-      {/* Overlay */}
+      {/* Backdrop overlay */}
       {open && (
-        <div className="fixed inset-0 z-40 bg-black/50 lg:hidden backdrop-blur-xs" onClick={() => setOpen(false)} />
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs transition-opacity animate-fade-in"
+          onClick={() => setOpen(false)}
+        />
       )}
 
-      {/* Actions Menu */}
+      {/* Actions Menu Popup */}
       {open && (
-        <div className="fixed bottom-20 right-4 z-50 lg:bottom-6 lg:right-6 animate-scale-in">
-          <div className="bg-ix-surface border border-ix-border rounded-2xl p-2 shadow-2xl min-w-[220px]">
-            {actions.map((action) => (
-              <button
-                key={action.label}
-                onClick={() => {
-                  setOpen(false);
-                  if ('action' in action && action.action) {
+        <div className="fixed bottom-24 right-4 z-50 lg:bottom-22 lg:right-6 animate-scale-in">
+          <div className="bg-ix-surface/95 backdrop-blur-md border border-ix-border rounded-2xl p-2 shadow-2xl min-w-[240px] divide-y divide-ix-border/40">
+            <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-ix-text-muted">
+              Quick Actions
+            </div>
+            <div className="space-y-1 pt-1">
+              {actions.map((action) => (
+                <button
+                  key={action.label}
+                  onClick={() => {
+                    setOpen(false);
                     action.action();
-                  } else if ('href' in action && action.href) {
-                    router.push(action.href);
-                  }
-                }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-ix-surface-hover transition-colors text-left"
-              >
-                <action.icon className={`w-4.5 h-4.5 ${action.color}`} />
-                <div>
-                  <span className="text-sm font-medium block">{action.label}</span>
-                  {'note' in action && action.note && (
-                    <span className="text-[10px] text-ix-text-muted">{action.note}</span>
-                  )}
-                </div>
-              </button>
-            ))}
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-ix-surface-hover active:scale-[0.98] transition-all text-left group"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-ix-bg border border-ix-border flex items-center justify-center flex-shrink-0 group-hover:border-ix-border-light transition-colors">
+                    <action.icon className={`w-4 h-4 ${action.color}`} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-sm font-semibold block text-ix-text group-hover:text-white transition-colors">
+                      {action.label}
+                    </span>
+                    <span className="text-[10px] text-ix-text-muted block truncate">
+                      {action.note}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
 
-      {/* FAB */}
+      {/* FAB Floating Plus Button */}
       <button
         onClick={() => setOpen(!open)}
         aria-label="Quick Actions"
-        className={`fixed bottom-20 right-4 z-50 lg:bottom-6 lg:right-6 w-13 h-13 sm:w-14 sm:h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 ${
+        className={`fixed bottom-6 right-4 z-50 lg:bottom-6 lg:right-6 w-13 h-13 sm:w-14 sm:h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 ${
           open
-            ? 'bg-ix-border rotate-45'
-            : 'bg-ix-green hover:bg-ix-green-hover animate-pulse-green'
+            ? 'bg-ix-surface border border-ix-border rotate-45 scale-105'
+            : 'bg-ix-green hover:bg-ix-green-hover text-ix-bg shadow-ix-green/25 hover:scale-105'
         }`}
       >
         {open ? (
           <X className="w-6 h-6 text-ix-text" />
         ) : (
-          <Plus className="w-6 h-6 text-ix-bg" />
+          <Plus className="w-6 h-6 text-ix-bg" strokeWidth={2.5} />
         )}
       </button>
 
-      {/* Add Payment Modal */}
+      {/* Modals */}
       <AddPaymentModal
         isOpen={paymentModalOpen}
         onClose={() => setPaymentModalOpen(false)}
+      />
+
+      <AddWorkModal
+        isOpen={workModalOpen}
+        onClose={() => setWorkModalOpen(false)}
+      />
+
+      <AddStudentModal
+        isOpen={studentModalOpen}
+        onClose={() => setStudentModalOpen(false)}
+      />
+
+      <AddAlertModal
+        isOpen={alertModalOpen}
+        onClose={() => setAlertModalOpen(false)}
+      />
+
+      <AddPointsModal
+        isOpen={pointsModalOpen}
+        onClose={() => setPointsModalOpen(false)}
+      />
+
+      <AddEvidenceModal
+        isOpen={evidenceModalOpen}
+        onClose={() => setEvidenceModalOpen(false)}
       />
     </>
   );

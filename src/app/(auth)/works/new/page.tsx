@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { demoStudents, demoSalespersons } from '@/lib/demo-data';
+import { useData } from '@/contexts/DataContext';
+import { demoSalespersons } from '@/lib/demo-data';
 import { ArrowLeft, ArrowRight, Check, Briefcase } from 'lucide-react';
 
 const STEPS = ['Client', 'Project', 'Team', 'Timeline', 'Payment', 'Confirm'];
@@ -11,6 +12,7 @@ const STEPS = ['Client', 'Project', 'Team', 'Timeline', 'Payment', 'Confirm'];
 export default function NewWorkPage() {
   const router = useRouter();
   const { isOwner } = useAuth();
+  const { students, addWork } = useData();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
     clientName: '', clientPhone: '', clientEmail: '', companyName: '',
@@ -24,7 +26,7 @@ export default function NewWorkPage() {
   const update = (field: string, value: string | boolean) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
-  const activeStudents = demoStudents.filter((s) => ['Active', 'In Project'].includes(s.status));
+  const activeStudents = students.filter((s) => ['Active', 'In Project', 'Selected'].includes(s.status));
 
   const canNext = () => {
     switch (step) {
@@ -38,8 +40,31 @@ export default function NewWorkPage() {
   };
 
   const handleSubmit = () => {
-    alert('Work created successfully! (Demo mode)');
-    router.push('/works');
+    const dev = students.find((s) => s.id === form.developer);
+    const des = form.sameAsDeveloper ? dev : students.find((s) => s.id === form.designer);
+
+    const created = addWork({
+      clientName: form.clientName.trim(),
+      clientPhone: form.clientPhone.trim(),
+      clientEmail: form.clientEmail.trim(),
+      companyName: form.companyName.trim() || form.clientName.trim(),
+      projectName: form.projectName.trim(),
+      projectPackage: form.projectPackage || 'Standard Website',
+      totalBudget: parseFloat(form.totalBudget) || 0,
+      advanceReceived: parseFloat(form.advanceReceived) || 0,
+      developerId: dev?.id || '',
+      developerName: dev?.fullName || '',
+      developerPayment: parseFloat(form.developerPayment) || 0,
+      designerId: des?.id || '',
+      designerName: des?.fullName || '',
+      designerPayment: parseFloat(form.designerPayment) || 0,
+      sameAsDeveloper: form.sameAsDeveloper,
+      startDate: form.startDate,
+      expectedCompletionDate: form.expectedCompletionDate,
+      notes: form.notes,
+    });
+
+    router.push(`/works/${created.id}`);
   };
 
   return (

@@ -1,13 +1,13 @@
 'use client';
 
-import { demoAlerts, demoWorks, demoStudents } from '@/lib/demo-data';
+import { useData } from '@/contexts/DataContext';
 import { formatDate } from '@/lib/utils';
-import type { Alert, AlertPriority } from '@/types';
+import type { AlertPriority } from '@/types';
 import { Bell, CheckCircle2, Plus, X } from 'lucide-react';
 import { useState } from 'react';
 
 export default function AlertsPage() {
-  const [alerts, setAlerts] = useState<Alert[]>(demoAlerts);
+  const { alerts, works, students, addAlert, markAlertCompleted } = useData();
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('active');
   const [showNewAlert, setShowNewAlert] = useState(false);
 
@@ -24,30 +24,16 @@ export default function AlertsPage() {
     return true;
   });
 
-  const markCompleted = (id: string) => {
-    setAlerts((prev) =>
-      prev.map((a) => a.id === id ? { ...a, status: 'Completed' as const, completedAt: new Date().toISOString() } : a)
-    );
-  };
-
   const handleCreateAlert = () => {
     if (!alertTitle.trim()) return;
 
-    const newAlert: Alert = {
-      id: `alert-${Date.now()}`,
-      alertId: `ALT-${String(alerts.length + 1).padStart(3, '0')}`,
-      workId: alertWorkId,
-      studentId: alertStudentId,
-      title: alertTitle,
-      description: alertDescription,
+    addAlert({
+      title: alertTitle.trim(),
+      description: alertDescription.trim(),
       priority: alertPriority,
-      status: 'Active',
-      createdBy: 'User',
-      createdAt: new Date().toISOString(),
-      completedAt: '',
-    };
-
-    setAlerts((prev) => [newAlert, ...prev]);
+      workId: alertWorkId || undefined,
+      studentId: alertStudentId || undefined,
+    });
 
     // Reset form
     setAlertTitle('');
@@ -130,7 +116,7 @@ export default function AlertsPage() {
               </div>
               {alert.status === 'Active' && (
                 <button
-                  onClick={() => markCompleted(alert.id)}
+                  onClick={() => markAlertCompleted(alert.id)}
                   className="p-2 rounded-lg hover:bg-ix-green-dim text-ix-text-muted hover:text-ix-green transition-colors"
                   title="Mark as completed"
                 >
@@ -220,7 +206,7 @@ export default function AlertsPage() {
                     className="w-full h-10 px-3 rounded-xl bg-ix-bg border border-ix-border text-sm focus:border-ix-green focus:outline-none appearance-none"
                   >
                     <option value="">None</option>
-                    {demoWorks.map((w) => (
+                    {works.map((w) => (
                       <option key={w.id} value={w.id}>{w.workId} — {w.companyName}</option>
                     ))}
                   </select>
@@ -235,7 +221,7 @@ export default function AlertsPage() {
                     className="w-full h-10 px-3 rounded-xl bg-ix-bg border border-ix-border text-sm focus:border-ix-green focus:outline-none appearance-none"
                   >
                     <option value="">None</option>
-                    {demoStudents.map((s) => (
+                    {students.map((s) => (
                       <option key={s.id} value={s.id}>{s.fullName} ({s.studentId})</option>
                     ))}
                   </select>

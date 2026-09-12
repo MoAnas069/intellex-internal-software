@@ -297,3 +297,97 @@ export async function addWorkToFirestore(work: Work): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Add a new student document in Firestore
+ */
+export async function addStudentToFirestore(student: Student): Promise<boolean> {
+  if (!canUseFirestore() || !db) return false;
+
+  try {
+    const studentRef = doc(db, COLLECTIONS.STUDENTS, student.id);
+    await setDoc(studentRef, student);
+    return true;
+  } catch (error) {
+    console.error('[Firestore] Error adding student:', error);
+    return false;
+  }
+}
+
+/**
+ * Add a new alert in Firestore
+ */
+export async function addAlertToFirestore(alert: Alert): Promise<boolean> {
+  if (!canUseFirestore() || !db) return false;
+
+  try {
+    const alertRef = doc(db, COLLECTIONS.ALERTS, alert.id);
+    await setDoc(alertRef, alert);
+    return true;
+  } catch (error) {
+    console.error('[Firestore] Error adding alert:', error);
+    return false;
+  }
+}
+
+/**
+ * Mark an alert as completed in Firestore
+ */
+export async function updateAlertInFirestore(alertId: string, updates: Partial<Alert>): Promise<boolean> {
+  if (!canUseFirestore() || !db) return false;
+
+  try {
+    const alertRef = doc(db, COLLECTIONS.ALERTS, alertId);
+    await updateDoc(alertRef, updates);
+    return true;
+  } catch (error) {
+    console.error('[Firestore] Error updating alert:', error);
+    return false;
+  }
+}
+
+/**
+ * Record a point transaction and update student points in Firestore
+ */
+export async function addPointTransactionToFirestore(
+  studentId: string,
+  transaction: any,
+  updatedPoints: { currentPoints: number; totalPositivePoints: number; totalNegativePoints: number }
+): Promise<boolean> {
+  if (!canUseFirestore() || !db) return false;
+
+  try {
+    const batch = writeBatch(db);
+    const pointRef = doc(db, 'point_transactions', transaction.id);
+    batch.set(pointRef, { ...transaction, studentId });
+
+    const studentRef = doc(db, COLLECTIONS.STUDENTS, studentId);
+    batch.update(studentRef, updatedPoints);
+
+    await batch.commit();
+    return true;
+  } catch (error) {
+    console.error('[Firestore] Error recording point transaction:', error);
+    return false;
+  }
+}
+
+/**
+ * Record evidence in Firestore
+ */
+export async function addEvidenceToFirestore(
+  studentId: string,
+  evidence: any
+): Promise<boolean> {
+  if (!canUseFirestore() || !db) return false;
+
+  try {
+    const evidenceRef = doc(db, 'evidence_records', evidence.id);
+    await setDoc(evidenceRef, { ...evidence, studentId });
+    return true;
+  } catch (error) {
+    console.error('[Firestore] Error saving evidence:', error);
+    return false;
+  }
+}
+
