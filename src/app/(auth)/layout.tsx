@@ -18,31 +18,22 @@ interface NavItem {
   href: string;
 }
 
-const OWNER_NAV: NavItem[] = [
+const ADMIN_NAV: NavItem[] = [
   { label: 'Home', icon: Home, href: '/owner' },
   { label: 'Works', icon: Briefcase, href: '/works' },
-  { label: 'Students', icon: Users, href: '/students' },
   { label: 'Finance', icon: IndianRupee, href: '/finance' },
 ];
 
-const MANAGER_NAV: NavItem[] = [
-  { label: 'Home', icon: Home, href: '/manager' },
-  { label: 'Students', icon: Users, href: '/students' },
-  { label: 'Works', icon: Briefcase, href: '/works' },
-  { label: 'Performance', icon: BarChart3, href: '/performance' },
-];
-
-const OWNER_SIDEBAR_EXTRA: NavItem[] = [
-  { label: 'Clients', icon: UserCheck, href: '/clients' },
-  { label: 'Reports', icon: FileText, href: '/reports' },
+const ADMIN_SIDEBAR_EXTRA: NavItem[] = [
   { label: 'Alerts', icon: Bell, href: '/alerts' },
   { label: 'Settings', icon: Settings, href: '/settings' },
 ];
 
-const MANAGER_SIDEBAR_EXTRA: NavItem[] = [
-  { label: 'Points', icon: Award, href: '/points' },
+const MOBILE_BOTTOM_NAV: NavItem[] = [
+  { label: 'Home', icon: Home, href: '/owner' },
+  { label: 'Works', icon: Briefcase, href: '/works' },
+  { label: 'Finance', icon: IndianRupee, href: '/finance' },
   { label: 'Alerts', icon: Bell, href: '/alerts' },
-  { label: 'Reports', icon: FileText, href: '/reports' },
 ];
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -62,13 +53,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   // Don't render until client has hydrated and checked localStorage
   if (!mounted || !user) return null;
 
-  const isOwner = user.role === 'owner';
-  const bottomNav = isOwner ? OWNER_NAV : MANAGER_NAV;
-  const sidebarExtra = isOwner ? OWNER_SIDEBAR_EXTRA : MANAGER_SIDEBAR_EXTRA;
-  const allNav = [...(isOwner ? OWNER_NAV : MANAGER_NAV), ...sidebarExtra];
+  const allNav = [...ADMIN_NAV, ...ADMIN_SIDEBAR_EXTRA];
 
   const isActive = (href: string) => {
-    if (href === '/owner' || href === '/manager') return pathname === href;
+    if (href === '/owner') return pathname === '/owner';
     return pathname.startsWith(href);
   };
 
@@ -87,7 +75,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               <Menu className="w-5 h-5" />
             </button>
             <div
-              onClick={() => router.push(isOwner ? '/owner' : '/manager')}
+              onClick={() => router.push('/owner')}
               className="flex items-center gap-2 cursor-pointer"
             >
               <div className="w-7 h-7 rounded-lg bg-ix-green flex items-center justify-center shadow-md shadow-ix-green/20">
@@ -103,7 +91,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             className="flex items-center gap-2 h-9 px-3 sm:px-4 rounded-xl bg-ix-surface border border-ix-border text-ix-text-muted text-xs sm:text-sm hover:border-ix-border-light transition-colors max-w-[160px] xs:max-w-[220px] sm:max-w-xs w-full mx-2 sm:mx-4"
           >
             <Search className="w-4 h-4 flex-shrink-0" />
-            <span className="truncate">Search...</span>
+            <span className="truncate">Search works, finance...</span>
             <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-ix-text-muted bg-ix-bg rounded border border-ix-border ml-auto">
               /
             </kbd>
@@ -141,9 +129,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <aside className="hidden lg:flex fixed left-0 top-14 bottom-0 w-60 flex-col border-r border-ix-border bg-ix-bg z-30 overflow-y-auto">
         <nav className="flex-1 p-3 space-y-1">
           <div className="px-3 py-2 text-[10px] font-semibold text-ix-text-muted uppercase tracking-widest">
-            Main
+            Operations
           </div>
-          {(isOwner ? OWNER_NAV : MANAGER_NAV).map((item) => (
+          {ADMIN_NAV.map((item) => (
             <button
               key={item.href}
               onClick={() => router.push(item.href)}
@@ -159,9 +147,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           ))}
 
           <div className="px-3 py-2 mt-4 text-[10px] font-semibold text-ix-text-muted uppercase tracking-widest">
-            More
+            Management
           </div>
-          {sidebarExtra.map((item) => (
+          {ADMIN_SIDEBAR_EXTRA.map((item) => (
             <button
               key={item.href}
               onClick={() => router.push(item.href)}
@@ -186,7 +174,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold truncate">{user.name}</p>
               <p className="text-xs text-ix-text-muted truncate">
-                {isOwner ? 'Owner' : 'Student Manager'}
+                Admin / Company Operations
               </p>
             </div>
           </div>
@@ -206,7 +194,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                 <div className="w-8 h-8 rounded-xl bg-ix-green flex items-center justify-center">
                   <span className="text-ix-bg font-bold text-xs">IX</span>
                 </div>
-                <span className="font-bold text-sm">INTELLEX</span>
+                <span className="font-bold text-sm">INTELLEX ADMIN</span>
               </div>
               <button
                 onClick={() => setSidebarOpen(false)}
@@ -265,7 +253,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       {/* Mobile Bottom Nav */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 glass border-t border-ix-border safe-bottom">
         <div className="flex items-center justify-around h-16">
-          {bottomNav.map((item) => {
+          {MOBILE_BOTTOM_NAV.map((item) => {
             const active = isActive(item.href);
             return (
               <button

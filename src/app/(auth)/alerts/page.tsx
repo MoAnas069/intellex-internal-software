@@ -7,7 +7,7 @@ import { Bell, CheckCircle2, Plus, X } from 'lucide-react';
 import { useState } from 'react';
 
 export default function AlertsPage() {
-  const { alerts, works, students, addAlert, markAlertCompleted } = useData();
+  const { alerts, works, addAlert, markAlertCompleted } = useData();
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('active');
   const [showNewAlert, setShowNewAlert] = useState(false);
 
@@ -16,7 +16,6 @@ export default function AlertsPage() {
   const [alertDescription, setAlertDescription] = useState('');
   const [alertPriority, setAlertPriority] = useState<AlertPriority>('Medium');
   const [alertWorkId, setAlertWorkId] = useState('');
-  const [alertStudentId, setAlertStudentId] = useState('');
 
   const filtered = alerts.filter((a) => {
     if (filter === 'active') return a.status === 'Active';
@@ -32,7 +31,6 @@ export default function AlertsPage() {
       description: alertDescription.trim(),
       priority: alertPriority,
       workId: alertWorkId || undefined,
-      studentId: alertStudentId || undefined,
     });
 
     // Reset form
@@ -40,7 +38,6 @@ export default function AlertsPage() {
     setAlertDescription('');
     setAlertPriority('Medium');
     setAlertWorkId('');
-    setAlertStudentId('');
     setShowNewAlert(false);
   };
 
@@ -199,30 +196,15 @@ export default function AlertsPage() {
 
                 {/* Related Work */}
                 <div>
-                  <label className="text-sm text-ix-text-muted block mb-1.5">Related Work (optional)</label>
+                  <label className="text-sm text-ix-text-muted block mb-1.5">Related Project / Work (optional)</label>
                   <select
                     value={alertWorkId}
                     onChange={(e) => setAlertWorkId(e.target.value)}
                     className="w-full h-10 px-3 rounded-xl bg-ix-bg border border-ix-border text-sm focus:border-ix-green focus:outline-none appearance-none"
                   >
-                    <option value="">None</option>
+                    <option value="">None (General Operational Alert)</option>
                     {works.map((w) => (
                       <option key={w.id} value={w.id}>{w.workId} — {w.companyName}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Related Student */}
-                <div>
-                  <label className="text-sm text-ix-text-muted block mb-1.5">Related Student (optional)</label>
-                  <select
-                    value={alertStudentId}
-                    onChange={(e) => setAlertStudentId(e.target.value)}
-                    className="w-full h-10 px-3 rounded-xl bg-ix-bg border border-ix-border text-sm focus:border-ix-green focus:outline-none appearance-none"
-                  >
-                    <option value="">None</option>
-                    {students.map((s) => (
-                      <option key={s.id} value={s.id}>{s.fullName} ({s.studentId})</option>
                     ))}
                   </select>
                 </div>

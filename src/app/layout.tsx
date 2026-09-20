@@ -4,8 +4,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { DataProvider } from "@/contexts/DataContext";
 
 export const metadata: Metadata = {
-  title: "Intellex Management System",
-  description: "Internal management system for Intellex — Manage students, projects, payments and performance.",
+  title: "AdminLink | Intellex Operations & Management",
+  description: "Intellex AdminLink — Internal company operations, project lifecycle, and financial management.",
 };
 
 export default function RootLayout({

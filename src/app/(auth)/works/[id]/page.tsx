@@ -151,31 +151,16 @@ export default function WorkDetailPage() {
             <span className="text-ix-text-muted">Salesperson</span>
             <span>{work.salespersonName}</span>
           </div>
-          <button
-            onClick={() => {
-              const dev = work.developerId;
-              if (dev) router.push(`/students/${dev}`);
-            }}
-            className="w-full flex justify-between items-center text-sm hover:bg-ix-surface-hover p-1 -mx-1 rounded transition-colors"
-          >
+          <div className="flex justify-between items-center text-sm">
             <span className="text-ix-text-muted">Developer</span>
-            <span className="text-ix-green flex items-center gap-1">
-              {work.developerName}
-              <ChevronRight className="w-3 h-3" />
-            </span>
-          </button>
-          <button
-            onClick={() => {
-              if (!work.sameAsDeveloper && work.designerId) router.push(`/students/${work.designerId}`);
-            }}
-            className="w-full flex justify-between items-center text-sm hover:bg-ix-surface-hover p-1 -mx-1 rounded transition-colors"
-          >
+            <span className="text-white font-medium">{work.developerName}</span>
+          </div>
+          <div className="flex justify-between items-center text-sm">
             <span className="text-ix-text-muted">Designer</span>
-            <span className={`flex items-center gap-1 ${work.sameAsDeveloper ? 'text-ix-text-secondary' : 'text-ix-green'}`}>
+            <span className={work.sameAsDeveloper ? 'text-ix-text-secondary' : 'text-white font-medium'}>
               {work.sameAsDeveloper ? 'Same as Developer' : work.designerName}
-              {!work.sameAsDeveloper && <ChevronRight className="w-3 h-3" />}
             </span>
-          </button>
+          </div>
         </div>
       </div>
 

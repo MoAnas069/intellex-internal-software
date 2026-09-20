@@ -2,29 +2,26 @@
 
 import React, { useState, useEffect } from 'react';
 import { useData } from '@/contexts/DataContext';
-import { X, Bell, CheckCircle2, AlertCircle, Briefcase, User, Flag } from 'lucide-react';
+import { X, Bell, CheckCircle2, AlertCircle, Briefcase } from 'lucide-react';
 import type { AlertPriority } from '@/types';
 
 interface AddAlertModalProps {
   isOpen: boolean;
   onClose: () => void;
   defaultWorkId?: string;
-  defaultStudentId?: string;
 }
 
 export default function AddAlertModal({
   isOpen,
   onClose,
   defaultWorkId,
-  defaultStudentId,
 }: AddAlertModalProps) {
-  const { works, students, addAlert } = useData();
+  const { works, addAlert } = useData();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<AlertPriority>('Medium');
   const [selectedWorkId, setSelectedWorkId] = useState(defaultWorkId || '');
-  const [selectedStudentId, setSelectedStudentId] = useState(defaultStudentId || '');
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -34,11 +31,10 @@ export default function AddAlertModal({
       setDescription('');
       setPriority('Medium');
       setSelectedWorkId(defaultWorkId || '');
-      setSelectedStudentId(defaultStudentId || '');
       setSuccessMsg('');
       setErrorMsg('');
     }
-  }, [isOpen, defaultWorkId, defaultStudentId]);
+  }, [isOpen, defaultWorkId]);
 
   if (!isOpen) return null;
 
@@ -57,7 +53,6 @@ export default function AddAlertModal({
         description: description.trim(),
         priority,
         workId: selectedWorkId || undefined,
-        studentId: selectedStudentId || undefined,
       });
 
       setSuccessMsg('Alert created successfully!');
@@ -181,7 +176,7 @@ export default function AddAlertModal({
                 onChange={(e) => setSelectedWorkId(e.target.value)}
                 className="w-full h-10 pl-9 pr-8 rounded-xl bg-ix-bg border border-ix-border text-sm text-ix-text focus:outline-none focus:border-ix-green transition-colors appearance-none"
               >
-                <option value="">None (General Alert)</option>
+                <option value="">None (General Operational Alert)</option>
                 {works.map((w) => (
                   <option key={w.id} value={w.id}>
                     {w.workId} - {w.projectName} ({w.clientName})
@@ -189,28 +184,6 @@ export default function AddAlertModal({
                 ))}
               </select>
               <Briefcase className="w-4 h-4 text-ix-text-muted absolute left-3 top-3 pointer-events-none" />
-            </div>
-          </div>
-
-          {/* Related Student (Optional) */}
-          <div>
-            <label className="block text-xs font-semibold text-ix-text-secondary uppercase tracking-wider mb-1.5">
-              Target Student (Optional)
-            </label>
-            <div className="relative">
-              <select
-                value={selectedStudentId}
-                onChange={(e) => setSelectedStudentId(e.target.value)}
-                className="w-full h-10 pl-9 pr-8 rounded-xl bg-ix-bg border border-ix-border text-sm text-ix-text focus:outline-none focus:border-ix-green transition-colors appearance-none"
-              >
-                <option value="">None</option>
-                {students.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.studentId} - {s.fullName} ({s.status})
-                  </option>
-                ))}
-              </select>
-              <User className="w-4 h-4 text-ix-text-muted absolute left-3 top-3 pointer-events-none" />
             </div>
           </div>
 

@@ -1,25 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { Plus, X, Briefcase, User, Bell, IndianRupee, Award, FileText } from 'lucide-react';
+import { Plus, X, Briefcase, Bell, IndianRupee } from 'lucide-react';
 import AddPaymentModal from './AddPaymentModal';
 import AddWorkModal from './AddWorkModal';
-import AddStudentModal from './AddStudentModal';
 import AddAlertModal from './AddAlertModal';
-import AddPointsModal from './AddPointsModal';
-import AddEvidenceModal from './AddEvidenceModal';
 
 export default function QuickActions() {
   const [open, setOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [workModalOpen, setWorkModalOpen] = useState(false);
-  const [studentModalOpen, setStudentModalOpen] = useState(false);
   const [alertModalOpen, setAlertModalOpen] = useState(false);
-  const [pointsModalOpen, setPointsModalOpen] = useState(false);
-  const [evidenceModalOpen, setEvidenceModalOpen] = useState(false);
-
-  const { isOwner } = useAuth();
 
   const actions = [
     {
@@ -30,43 +21,18 @@ export default function QuickActions() {
       note: 'Create a new project',
     },
     {
-      label: 'New Student',
-      icon: User,
-      action: () => setStudentModalOpen(true),
-      color: 'text-green-400',
-      note: 'Register student',
-    },
-    {
       label: 'New Alert',
       icon: Bell,
       action: () => setAlertModalOpen(true),
       color: 'text-amber-400',
       note: 'Broadcast an alert',
     },
-    ...(isOwner
-      ? [
-          {
-            label: 'Add Payment',
-            icon: IndianRupee,
-            action: () => setPaymentModalOpen(true),
-            color: 'text-purple-400',
-            note: 'Record project payment',
-          },
-        ]
-      : []),
     {
-      label: 'Add Points',
-      icon: Award,
-      action: () => setPointsModalOpen(true),
-      color: 'text-pink-400',
-      note: 'Award or deduct points',
-    },
-    {
-      label: 'Add Evidence',
-      icon: FileText,
-      action: () => setEvidenceModalOpen(true),
-      color: 'text-cyan-400',
-      note: 'Log student work proof',
+      label: 'Add Payment',
+      icon: IndianRupee,
+      action: () => setPaymentModalOpen(true),
+      color: 'text-purple-400',
+      note: 'Record project payment',
     },
   ];
 
@@ -143,24 +109,9 @@ export default function QuickActions() {
         onClose={() => setWorkModalOpen(false)}
       />
 
-      <AddStudentModal
-        isOpen={studentModalOpen}
-        onClose={() => setStudentModalOpen(false)}
-      />
-
       <AddAlertModal
         isOpen={alertModalOpen}
         onClose={() => setAlertModalOpen(false)}
-      />
-
-      <AddPointsModal
-        isOpen={pointsModalOpen}
-        onClose={() => setPointsModalOpen(false)}
-      />
-
-      <AddEvidenceModal
-        isOpen={evidenceModalOpen}
-        onClose={() => setEvidenceModalOpen(false)}
       />
     </>
   );

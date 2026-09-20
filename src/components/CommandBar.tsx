@@ -4,10 +4,10 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-  Search, X, Plus, User, Briefcase, IndianRupee, Bell,
-  Award, ArrowRight, Hash, Building2, FileText
+  Search, X, Plus, Briefcase, IndianRupee, Bell,
+  ArrowRight, Hash, Settings, Home, CheckCircle2, Clock
 } from 'lucide-react';
-import { demoStudents, demoWorks, demoClients } from '@/lib/demo-data';
+import { demoWorks } from '@/lib/demo-data';
 
 interface CommandBarProps {
   isOpen: boolean;
@@ -27,7 +27,6 @@ export default function CommandBar({ isOpen, onClose }: CommandBarProps) {
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const { isOwner } = useAuth();
 
   useEffect(() => {
     if (isOpen) {
@@ -64,38 +63,25 @@ export default function CommandBar({ isOpen, onClose }: CommandBarProps) {
     // Action commands
     const commands: Suggestion[] = [
       { id: 'cmd-new-work', label: 'New Work', sublabel: 'Create a new project', icon: Plus, action: () => navigate('/works/new'), category: 'Actions' },
-      { id: 'cmd-new-student', label: 'New Student', sublabel: 'Add a new student', icon: Plus, action: () => navigate('/students/new'), category: 'Actions' },
-      { id: 'cmd-new-alert', label: 'New Alert', sublabel: 'Create an alert', icon: Plus, action: () => navigate('/alerts?new=1'), category: 'Actions' },
+      { id: 'cmd-new-alert', label: 'New Alert', sublabel: 'Create an alert', icon: Bell, action: () => navigate('/alerts?new=1'), category: 'Actions' },
+      { id: 'cmd-new-payment', label: 'New Payment', sublabel: 'Record a payment', icon: IndianRupee, action: () => navigate('/finance'), category: 'Actions' },
     ];
-
-    if (isOwner) {
-      commands.push({
-        id: 'cmd-new-payment', label: 'New Payment', sublabel: 'Record a payment', icon: Plus, action: () => navigate('/finance?new=1'), category: 'Actions'
-      });
-    }
 
     // Navigation commands
     const navCommands: Suggestion[] = [
-      { id: 'nav-students', label: 'All Students', sublabel: 'View student list', icon: User, action: () => navigate('/students'), category: 'Navigate' },
-      { id: 'nav-works', label: 'All Works', sublabel: 'View all projects', icon: Briefcase, action: () => navigate('/works'), category: 'Navigate' },
-      { id: 'nav-ongoing', label: 'Ongoing Works', sublabel: 'Projects in progress', icon: Briefcase, action: () => navigate('/works?filter=ongoing'), category: 'Navigate' },
-      { id: 'nav-completed', label: 'Completed Works', sublabel: 'Finished projects', icon: Briefcase, action: () => navigate('/works?filter=completed'), category: 'Navigate' },
-      { id: 'nav-alerts', label: 'Alerts', sublabel: 'View all alerts', icon: Bell, action: () => navigate('/alerts'), category: 'Navigate' },
-      { id: 'nav-top-students', label: 'Top Students', sublabel: 'Highest performing students', icon: Award, action: () => navigate('/students?sort=points-desc'), category: 'Navigate' },
-      { id: 'nav-negative', label: 'Negative Points', sublabel: 'Students requiring attention', icon: Award, action: () => navigate('/students?filter=attention'), category: 'Navigate' },
+      { id: 'nav-home', label: 'Dashboard Home', sublabel: 'Company overview & metrics', icon: Home, action: () => navigate('/owner'), category: 'Navigate' },
+      { id: 'nav-works', label: 'Works & Projects', sublabel: 'View all projects', icon: Briefcase, action: () => navigate('/works'), category: 'Navigate' },
+      { id: 'nav-ongoing', label: 'Ongoing Works', sublabel: 'Active projects in progress', icon: Clock, action: () => navigate('/works?filter=ongoing'), category: 'Navigate' },
+      { id: 'nav-completed', label: 'Completed Works', sublabel: 'Finished projects', icon: CheckCircle2, action: () => navigate('/works?filter=completed'), category: 'Navigate' },
+      { id: 'nav-pending-payments', label: 'Pending Payments', sublabel: 'Works with pending balance', icon: IndianRupee, action: () => navigate('/works?filter=pending-payment'), category: 'Navigate' },
+      { id: 'nav-finance', label: 'Finance & Revenue', sublabel: 'Monthly revenue, profit & expenses', icon: IndianRupee, action: () => navigate('/finance'), category: 'Navigate' },
+      { id: 'nav-alerts', label: 'Alerts', sublabel: 'View active alerts', icon: Bell, action: () => navigate('/alerts'), category: 'Navigate' },
+      { id: 'nav-settings', label: 'Settings', sublabel: 'Admin settings & system info', icon: Settings, action: () => navigate('/settings'), category: 'Navigate' },
     ];
-
-    if (isOwner) {
-      navCommands.push(
-        { id: 'nav-pending-payments', label: 'Pending Payments', sublabel: 'Works with pending payments', icon: IndianRupee, action: () => navigate('/works?filter=pending-payment'), category: 'Navigate' },
-        { id: 'nav-finance', label: 'Finance Overview', sublabel: 'Revenue, profit & payments', icon: IndianRupee, action: () => navigate('/finance'), category: 'Navigate' },
-        { id: 'nav-reports', label: 'Reports', sublabel: 'Business & student reports', icon: FileText, action: () => navigate('/reports'), category: 'Navigate' },
-      );
-    }
 
     if (!q) {
       // Show default suggestions
-      return [...commands.slice(0, 3), ...navCommands.slice(0, 4)];
+      return [...commands, ...navCommands.slice(0, 4)];
     }
 
     // Filter commands
@@ -104,62 +90,29 @@ export default function CommandBar({ isOpen, onClose }: CommandBarProps) {
     );
     results.push(...matchedCommands);
 
-    // Search students
-    const matchedStudents = demoStudents.filter(
-      (s) =>
-        s.fullName.toLowerCase().includes(q) ||
-        s.studentId.toLowerCase().includes(q) ||
-        s.college.toLowerCase().includes(q)
-    );
-    results.push(
-      ...matchedStudents.map((s) => ({
-        id: `stu-${s.id}`,
-        label: s.fullName,
-        sublabel: `${s.studentId} • ${s.college} • ${s.currentPoints >= 0 ? '+' : ''}${s.currentPoints} pts`,
-        icon: User,
-        action: () => navigate(`/students/${s.id}`),
-        category: 'Students',
-      }))
-    );
-
     // Search works
     const matchedWorks = demoWorks.filter(
       (w) =>
         w.workId.toLowerCase().includes(q) ||
         w.projectName.toLowerCase().includes(q) ||
         w.clientName.toLowerCase().includes(q) ||
-        w.companyName.toLowerCase().includes(q)
+        w.clientPhone.includes(q) ||
+        w.companyName.toLowerCase().includes(q) ||
+        w.developerName.toLowerCase().includes(q)
     );
     results.push(
       ...matchedWorks.map((w) => ({
         id: `work-${w.id}`,
         label: `${w.workId} — ${w.companyName}`,
-        sublabel: `${w.projectName} • ${w.currentStage}`,
+        sublabel: `${w.projectName} • ${w.clientName} (${w.clientPhone}) • ${w.currentStage}`,
         icon: Briefcase,
         action: () => navigate(`/works/${w.id}`),
         category: 'Works',
       }))
     );
 
-    // Search clients
-    const matchedClients = demoClients.filter(
-      (c) =>
-        c.name.toLowerCase().includes(q) ||
-        c.company.toLowerCase().includes(q)
-    );
-    results.push(
-      ...matchedClients.map((c) => ({
-        id: `client-${c.id}`,
-        label: c.company || c.name,
-        sublabel: `${c.projectCount} projects • ${c.name}`,
-        icon: Building2,
-        action: () => navigate(`/clients/${c.id}`),
-        category: 'Clients',
-      }))
-    );
-
     return results.slice(0, 15);
-  }, [query, isOwner]);
+  }, [query]);
 
   // Group suggestions by category
   const grouped = useMemo(() => {
